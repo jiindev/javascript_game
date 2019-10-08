@@ -5,6 +5,7 @@
 }
 table{
     border-collapse: collapse;
+    cursor: pointer;
 }
 td{
     border: 1px solid black;
@@ -12,4 +13,7 @@ td{
     height: 20px;
     vertical-align: center;
     text-align: center;
+}
+td.opened{
+    background-color:grey;
 }
