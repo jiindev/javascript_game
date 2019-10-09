@@ -2,6 +2,15 @@ var tbody = document.querySelector('#table tbody');
 let dataset = [];
 let stopFlag = false;
 let openSqr = 0;
+let code = {
+    open : -1,
+    qst : -2,
+    flag : -3,
+    flagmine : -4,
+    qstmine : -5,
+    mine : 1,
+    normal : 0
+}
 document.querySelector('#exec').addEventListener('click', function () {
     //내부 먼저 초기화
     openSqr = 0;
@@ -31,7 +40,7 @@ document.querySelector('#exec').addEventListener('click', function () {
         let tr = document.createElement('tr');
         dataset.push(arr);
         for (let j = 0; j < hor; j++) {
-            arr.push(0);
+            arr.push(code.normal);
             let td = document.createElement('td');
             td.addEventListener('contextmenu', function (e) {
                 e.preventDefault();
@@ -44,15 +53,30 @@ document.querySelector('#exec').addEventListener('click', function () {
                 let tdY = Array.prototype.indexOf.call(parentTbody.children, parentTr);
                 if (e.currentTarget.textContent === '' || e.currentTarget.textContent === 'X') {
                     e.currentTarget.textContent = '!';
+                    e.currentTarget.classList.add('flag');
+                    if(dataset[tdY][tdX]===code.mine){
+                        dataset[tdY][tdX]=code.flagmine;
+                    }else{
+                        dataset[tdY][tdX]=code.flag;
+                    }
                 } else if (e.currentTarget.textContent === '!') {
                     e.currentTarget.textContent = '?';
-                } else if (e.currentTarget.textContent === '?') {
-                    if (dataset[tdY][tdX] === 1) {
-                        e.currentTarget.textContent = '';
-                    } else if (dataset[tdY][tdX] === 'X') {
-                        e.currentTarget.textContent = 'X';
+                    e.currentTarget.classList.add('qst');
+                    e.currentTarget.classList.remove('flag');
+                    if(dataset[tdY][tdX]===code.flagmine){
+                        dataset[tdY][tdX]=code.qstmine;
+                    }else{
+                        dataset[tdY][tdX]=code.qst;
                     }
-
+                } else if (e.currentTarget.textContent === '?') {
+                    e.currentTarget.classList.remove('qst');
+                    if (dataset[tdY][tdX] === code.qstmine) {
+                        e.currentTarget.textContent = 'X';
+                        dataset[tdY][tdX] = code.mine;
+                    }else{
+                        e.currentTarget.textContent = '';
+                        dataset[tdY][tdX] = code.normal;
+                    }
                 }
             });
             td.addEventListener('click', function (e) {
@@ -63,18 +87,17 @@ document.querySelector('#exec').addEventListener('click', function () {
                 let parentTbody = e.currentTarget.parentNode.parentNode;
                 let tdX = Array.prototype.indexOf.call(parentTr.children, e.currentTarget);
                 let tdY = Array.prototype.indexOf.call(parentTbody.children, parentTr);
-                if(dataset[tdY][tdX]===1){
+                if([code.open, code.flag, code.flagmine, code.qst, code.qstmine].includes(dataset[tdY][tdX])){
                     return;
                 }
                 //클릭 시 주변 지뢰 개수
                 e.currentTarget.classList.add('opened');
-                openSqr++;
-                console.log(openSqr);
-                if (dataset[tdY][tdX] === 'X') {
+                if (dataset[tdY][tdX] === code.mine) {
                     e.currentTarget.textContent = '펑';
                     document.querySelector('#result').textContent='실패!';
                     stopFlag = true;
                 } else {
+                    openSqr++;
                     let around = [
                         dataset[tdY][tdX - 1], dataset[tdY][tdX + 1]
                     ];
@@ -85,10 +108,10 @@ document.querySelector('#exec').addEventListener('click', function () {
                         around = around.concat([dataset[tdY + 1][tdX - 1], dataset[tdY + 1][tdX], dataset[tdY + 1][tdX + 1]]);
                     }
                     let aroundMine = around.filter(function (v) {
-                        return v === 'X';
+                        return [code.mine, code.qstmine, code.flagmine].includes(v);
                     }).length;
                     e.currentTarget.textContent = aroundMine || '';
-                    dataset[tdY][tdX]=1;
+                    dataset[tdY][tdX]=code.open;
                     if (aroundMine === 0) {
                         let aroundSqr = [];
                         if (tbody.children[tdY - 1]) {
@@ -116,7 +139,7 @@ document.querySelector('#exec').addEventListener('click', function () {
                             let parentTbody = next.parentNode.parentNode;
                             let nextX = Array.prototype.indexOf.call(parentTr.children, next);
                             let nextY = Array.prototype.indexOf.call(parentTbody.children, parentTr);
-                            if(dataset[nextY][nextX] != 1){
+                            if(dataset[nextY][nextX] !== code.open){
                                 next.click();
                             }
                         })
@@ -138,6 +161,6 @@ document.querySelector('#exec').addEventListener('click', function () {
         let ver_pos = Math.floor(shuffle[k] / hor);
         let hor_pos = shuffle[k] % hor;
         tbody.children[ver_pos].children[hor_pos].textContent = "X";
-        dataset[ver_pos][hor_pos] = "X";
+        dataset[ver_pos][hor_pos] = code.mine;
     }
 });

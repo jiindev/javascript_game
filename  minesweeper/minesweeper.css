@@ -17,3 +17,9 @@ td{
 td.opened{
     background-color:grey;
 }
+td.qst{
+    background-color: red;
+}
+td.flag{
+    background-color: blue;
+}
